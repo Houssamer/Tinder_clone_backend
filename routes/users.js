@@ -5,8 +5,37 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { secretJWT } from '../config/keys.js';
 import auth from '../middleware/authMiddleware.js';
+import multer from 'multer';
+import path from 'path';
 
 const router = express.Router();
+
+//storage configuration
+
+const storage = multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, './uploads');
+  },
+  filename: function (req, file, callback) {
+    callback(
+      null,
+      file.fieldname + '-' + Date.now() + path.extname(file.originalname)
+    );
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: function (req, file, callback) {
+    const typeAccepted = /jpeg|jpg|png/;
+
+    if (typeAccepted.test(path.extname(file.originalname.toLowerCase()))) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
+});
 
 //user model
 const User = new mongoose.model('User', Users);
@@ -89,8 +118,8 @@ router.delete('/:id', auth, (req, res) => {
 
 //user update (update a user)
 
-router.post('/:id', auth, (req, res) => {
-  const { imgURL } = req.body;
+router.post('/:id', auth, upload.single('uploads'), (req, res) => {
+  const imgURL = 'http://localhost:3001/' + req.file.filename;
 
   if (!imgURL) {
     res.status(400).json({ message: 'Please enter your picture url' });

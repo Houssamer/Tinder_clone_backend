@@ -11,6 +11,8 @@ const PORT = process.env.PORT || 3001;
 //middlewares
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static('./uploads'));
 app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', 'http://localhost:3000');
   res.set(
@@ -30,6 +32,7 @@ mongoose
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true,
+    useFindAndModify: false,
   })
   .then(() => console.log('connected to mongodb'))
   .catch((err) => console.log(err));
